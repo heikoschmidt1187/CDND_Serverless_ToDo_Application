@@ -12,7 +12,8 @@ const logger = createLogger('auth')
 // TODO: Provide a URL that can be used to download a certificate that can be used
 // to verify JWT token signature.
 // To get this URL you need to go to an Auth0 page -> Show Advanced Settings -> Endpoints -> JSON Web Key Set
-const jwksUrl = '...'
+const jwksUrl = process.env.AUTH0_JWKS_URL
+let certCached : string   // cache the certificate
 
 export const handler = async (
   event: CustomAuthorizerEvent
@@ -55,13 +56,14 @@ export const handler = async (
 }
 
 async function verifyToken(authHeader: string): Promise<JwtPayload> {
-  const token = getToken(authHeader)
-  const jwt: Jwt = decode(token, { complete: true }) as Jwt
 
   // TODO: Implement token verification
   // You should implement it similarly to how it was implemented for the exercise for the lesson 5
   // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
-  return undefined
+  const token = getToken(authHeader)
+  const cert = await getCertificate()
+
+  return verify(token, cert, {algorithms: ['RSA256']}) as JwtPayload
 }
 
 function getToken(authHeader: string): string {
@@ -74,4 +76,40 @@ function getToken(authHeader: string): string {
   const token = split[1]
 
   return token
+}
+
+async function getCertificate(): Promise<string> {
+
+  // directly return if we already fetched the certificate
+  if(certCached)
+    return certCached;
+
+  // load the certificate from the provided jwksUrl and extract the keys
+  const response = await Axios.get(jwksUrl)
+  const keys = response.data.keys
+
+  // if no keys have been received --> error
+  if(!keys || !keys.length)
+    throw new Error('Missing JWKS keys')
+
+    // filter the signing keys from all the keys
+    const sigKeys = keys.filter(
+      key => key.use === 'sig'
+          && key.kty === 'RSA'
+          && key.alg === 'RS256'
+          && key.n
+          && key.e
+          && key.kid
+          && (key.x5c && key.x5c.length)
+    )
+
+    // if no signing keys have been found --> error
+    if(!sigKeys.length)
+      throw new Error('Missing JWKS signing keys')
+
+    // for now we only use the first key and create the certificate
+    certCached = sigKeys[0].x5c[0].match(/.{1,64}/g).join('\n')
+    certCached = `-----BEGIN CERTIFICATE-----\n${certCached}\n-----END CERTIFICATE-----\n`
+
+    return certCached
 }
