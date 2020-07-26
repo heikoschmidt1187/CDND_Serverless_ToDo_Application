@@ -29,11 +29,12 @@ functions:
           method: get
           path: todos
           cors: true
+          auth: Auth
     iamRoleStatements:
       - Effect: Allow
         Action:
-          - dynamodb:Scan
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_FOR_USER_INDEX}
      
   # # TODO: Configure this function
   # CreateTodo:
