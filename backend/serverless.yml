@@ -7,27 +7,34 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs12.x
 
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'eu-central-1'}
 
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
+    TODOS_FOR_USER_INDEX: TodosForUserIndex
+    AUTH0_JWKS_URL: https://dev-6fg0e-ow.eu.auth0.com/.well-known/jwks.json
 
-  # functions:
-  # 
-  # Auth:
-  # handler: src/lambda/auth/auth0Authorizer.handler
-  # 
-  # # TODO: Configure this function
-  # GetTodos:
-  # handler: src/lambda/http/getTodos.handler
-  # events:
-  # - http:
-  # method: get
-  # path: todos
-  # 
+functions:
+   
+  Auth:
+    handler: src/lambda/auth/auth0Authorizer.handler
+
+  GetTodos:
+    handler: src/lambda/http/getTodos.handler
+    events:
+      - http:
+          method: get
+          path: todos
+          cors: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Scan
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+     
   # # TODO: Configure this function
   # CreateTodo:
   # handler: src/lambda/http/createTodo.handler
@@ -62,6 +69,17 @@ provider:
 
 resources:
   Resources:
+    # GatewayResponseDefault4XX:
+    # Type: AWS::ApiGateway::GatewayResponse
+    # Properties:
+    # ResponseParameters:
+    # gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+    # gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    # gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+    # ResponseType: DEFAULT_4XX
+    # RestApiId:
+    # Ref: ApiGatwayRestApi
+
     TodosDynamoDBTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -70,16 +88,20 @@ resources:
             AttributeType: S
           - AttributeName: createdAt
             AttributeType: S
-          - AttributeName: name
+          - AttributeName: userId
             AttributeType: S
-          - AttributeName: dueDate
-            AttributeType: S
-          - AttributeName: done
-            AttributeType: B
-          - AttributeName: attachmentUrl
-            AttributeType: B
         KeySchema:
           - AttributeName: todoId
             KeyType: HASH
-        BilingMethod: PAY_PER_REQUEST
+        BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.TODOS_FOR_USER_INDEX}
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+                
