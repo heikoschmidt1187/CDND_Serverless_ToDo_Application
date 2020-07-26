@@ -49,23 +49,37 @@ functions:
         Action:
           - dynamodb:PutItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-  # 
-  # # TODO: Configure this function
-  # UpdateTodo:
-  # handler: src/lambda/http/updateTodo.handler
-  # events:
-  # - http:
-  # method: patch
-  # path: todos/{todoId}
-  # 
-  # # TODO: Configure this function
-  # DeleteTodo:
-  # handler: src/lambda/http/deleteTodo.handler
-  # events:
-  # - http:
-  # method: delete
-  # path: todos/{todoId}
-  # 
+
+  UpdateTodo:
+    handler: src/lambda/http/updateTodo.handler
+    events:
+      - http:
+          method: patch
+          path: todos/{todoId}
+          cors: true
+          auth: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+          - dynamodb:GetItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      
+  DeleteTodo:
+    handler: src/lambda/http/deleteTodo.handler
+    events:
+      - http:
+          method: delete
+          path: todos/{todoId}
+          cors: true
+          auth: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+          - dynamodb:GetItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+  
   # # TODO: Configure this function
   # GenerateUploadUrl:
   # handler: src/lambda/http/generateUploadUrl.handler
@@ -76,16 +90,16 @@ functions:
 
 resources:
   Resources:
-    # GatewayResponseDefault4XX:
-    # Type: AWS::ApiGateway::GatewayResponse
-    # Properties:
-    # ResponseParameters:
-    # gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-    # gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-    # gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
-    # ResponseType: DEFAULT_4XX
-    # RestApiId:
-    # Ref: ApiGatwayRestApi
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: ApiGatewayRestApi
 
     TodosDynamoDBTable:
       Type: AWS::DynamoDB::Table

@@ -2,7 +2,8 @@ import * as AWS from 'aws-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 import { TodoItem } from '../models/TodoItem'
-import { loggers } from 'winston'
+import { TodoUpdate } from '../models/TodoUpdate'
+import { HTTPVersionNotSupported } from 'http-errors'
 
 export class TodosAccess {
     constructor(
@@ -36,6 +37,57 @@ export class TodosAccess {
         await this.docClient.put({
             TableName: this.todosTable,
             Item: todoItem
+        }).promise()
+    }
+
+    // helper to check if item is present
+    async itemPresent(todoId: string): Promise<boolean> {
+        const item = await this.getTodoItem(todoId)
+        return !!item
+    }
+
+    // helper to get a specific item by id 
+    async getTodoItem(todoId: string): Promise<TodoItem> {
+
+        // get the item from the database
+        const result = await this.docClient.get({
+            TableName: this.todosTable,
+            Key: {
+                todoId
+            }
+        }).promise()
+
+        return result.Item as TodoItem
+    }
+
+    // operation to update an existing item
+    async updateTodoItem(todoId: string, todoUpdate: TodoUpdate) {
+
+        await this.docClient.update({
+            TableName: this.todosTable,
+            Key: {
+                todoId
+            },
+            UpdateExpression: 'set #name = :name, dueDate = :dueDate, done = :done',
+            ExpressionAttributeNames: {
+                "#name": "name"
+            },
+            ExpressionAttributeValues: {
+                ":name": todoUpdate.name,
+                ":dueDate": todoUpdate.dueDate,
+                ":done": todoUpdate.done
+            }
+        }).promise()
+    }
+
+    // operation to delete a TODO item
+    async deleteTodoItem(todoId: string) {
+
+        await this.docClient.delete({
+            TableName: this.todosTable,
+            Key: {
+                todoId
+            }
         }).promise()
     }
 }
