@@ -75,3 +75,27 @@ export async function deleteTodoItem(userId: string, todoId: string) {
 
     todosAccess.deleteTodoItem(todoId)
 }
+
+// operation to update the attachment URL of a TODO
+export async function updAttachmentUrl(userId: string, todoId: string, attachmentId: string) {
+
+    // get the attachment URL of the TODO and item
+    const attUrl = await todosAccess.getAttachUrl(attachmentId)
+    const todo = await todosAccess.getTodoItem(todoId)
+
+    // check if item is valid
+    if(!todo)
+        throw new Error('Missing TODO item')
+
+    // check if item belongs to user
+    if(todo.userId !== userId) 
+        throw new Error('Trying to modify item that does not belong to user')
+
+    // update the url
+    await todosAccess.updateAttachmentUrl(todoId, attUrl)
+}
+
+// operation to generate an upload url
+export async function genUploadUrl(attachmentId: string): Promise<string> {
+    return await todosAccess.getUploadUrl(attachmentId)
+}
