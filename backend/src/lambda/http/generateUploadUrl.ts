@@ -4,8 +4,14 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } f
 import { genUploadUrl, updAttachmentUrl } from '../../businessLogic/todos'
 import { getUserId } from '../utils'
 import * as uuid from 'uuid'
+import { createLogger } from '../../utils/logger'
+
+const logger = createLogger('generateUploadUrl')
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+
+  logger.info('Processing event to generate an upload url', {event})
+
   // extract user and todo item id
   const todoId = event.pathParameters.todoId
   const userId = getUserId(event)
