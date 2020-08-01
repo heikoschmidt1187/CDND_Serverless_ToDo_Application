@@ -124,12 +124,12 @@ export class TodosAccess {
         await this.docClient.update({
             TableName: this.todosTable,
             Key: {
-                todoId
+              todoId
             },
-            UpdateExpression: 'set attachmentUrl = :attachentUrl',
+            UpdateExpression: 'set attachmentUrl = :attachmentUrl',
             ExpressionAttributeValues: {
-                ':attachmentUrl': attachUrl
+              ':attachmentUrl': attachUrl
             }
-        }).promise()
+          }).promise()
     }
 }
