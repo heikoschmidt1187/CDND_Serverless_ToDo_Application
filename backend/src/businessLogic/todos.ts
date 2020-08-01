@@ -17,11 +17,14 @@ const todosAccess = new TodosAccess()
 
 // operation to get all TODOs
 export async function getAllTodos(userId: string): Promise<TodoItem[]> {
+    logger.info(`Getting all TODOs for user ${userId}`, {userId})
+    
     return await todosAccess.getAllTodos(userId)
 }
 
 // operation to create a TODO
 export async function createTodo(userId: string, createTodoRequest: CreateTodoRequest): Promise<TodoItem> {
+
     // get a uuid for the new TODO
     const todoId = uuid.v4()
 
@@ -45,6 +48,8 @@ export async function createTodo(userId: string, createTodoRequest: CreateTodoRe
 // operation to update todo elements
 export async function updateTodoItem(userId: string, todoId: string, updateTodoRequest: UpdateTodoRequest) {
 
+    logger.info(`Updating TODO ${todoId} for user ${userId}`, {todoId, userId})
+
     // get the todo item to update
     const todo = await todosAccess.getTodoItem(todoId)
 
@@ -62,6 +67,8 @@ export async function updateTodoItem(userId: string, todoId: string, updateTodoR
 // operation to delete todo elements
 export async function deleteTodoItem(userId: string, todoId: string) {
 
+    logger.info(`Deleting TODO ${todoId} for user ${userId}`, {todoId, userId})
+
     // get the todo item to update
     const todo = await todosAccess.getTodoItem(todoId)
 
@@ -78,6 +85,8 @@ export async function deleteTodoItem(userId: string, todoId: string) {
 
 // operation to update the attachment URL of a TODO
 export async function updAttachmentUrl(userId: string, todoId: string, attachmentId: string) {
+
+    logger.info(`Creating Attachment URL for TODO ${todoId} for user ${userId} attachmentID ${attachmentId}`, {todoId, userId, attachmentId})
 
     // get the attachment URL of the TODO and item
     const attUrl = await todosAccess.getAttachUrl(attachmentId)
@@ -97,5 +106,7 @@ export async function updAttachmentUrl(userId: string, todoId: string, attachmen
 
 // operation to generate an upload url
 export async function genUploadUrl(attachmentId: string): Promise<string> {
+    logger.info(`Generating upload URL for ${attachmentId}`, {attachmentId})
+
     return await todosAccess.getUploadUrl(attachmentId)
 }

@@ -57,16 +57,22 @@ export const handler = async (
 async function verifyToken(authHeader: string): Promise<JwtPayload> {
 
   // TODO: Implement token verification
-  // You should implement it similarly to how it was implemented for the exercise for the lesson 5
+  // You should implement it simAWSXRayilarly to how it was implemented for the exercise for the lesson 5
   // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
   const token = getToken(authHeader)
   const cert = await getCertificate()
+
+  logger.info(`Verifying token`)
 
   return verify(token, cert, {algorithms: ['RSA256']}) as JwtPayload
 }
 
 function getToken(authHeader: string): string {
-  if (!authHeader) throw new Error('No authentication header')
+  
+  logger.info(`Getting Token`)
+
+  if (!authHeader)
+    throw new Error('No authentication header')  
 
   if (!authHeader.toLowerCase().startsWith('bearer '))
     throw new Error('Invalid authentication header')
@@ -78,6 +84,8 @@ function getToken(authHeader: string): string {
 }
 
 async function getCertificate(): Promise<string> {
+
+  logger.info(`Getting Certificate`)
 
   // directly return if we already fetched the certificate
   if(certCached)
