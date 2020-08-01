@@ -5,7 +5,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } f
 import { createLogger} from '../../utils/logger'
 import { getAllTodos } from '../../businessLogic/todos'
 import { getUserId } from '../utils'
-import { loggers } from 'winston'
 
 // instantiate logger
 const logger = createLogger('getTodos')

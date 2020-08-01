@@ -3,8 +3,6 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 import { TodoItem } from '../models/TodoItem'
 import { TodoUpdate } from '../models/TodoUpdate'
-import { HTTPVersionNotSupported } from 'http-errors'
-import { updAttachmentUrl } from '../businessLogic/todos'
 
 export class TodosAccess {
     constructor(
