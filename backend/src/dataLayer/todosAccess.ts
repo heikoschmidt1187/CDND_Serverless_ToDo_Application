@@ -74,21 +74,23 @@ export class TodosAccess {
     async updateTodoItem(todoId: string, todoUpdate: TodoUpdate) {
 
         await this.docClient.update({
-            TableName: this.todosTable,
-            Key: {
-                todoId
-            },
-            UpdateExpression: 'set #name = :name, dueDate = :dueDate, done = :done',
-            ExpressionAttributeNames: {
-                "#name": "name"
-            },
-            ExpressionAttributeValues: {
-                ":name": todoUpdate.name,
-                ":dueDate": todoUpdate.dueDate,
-                ":done": todoUpdate.done
-            }
-        }).promise()
+          TableName: this.todosTable,
+          Key: {
+            todoId
+          },
+          UpdateExpression: 'set #name = :name, dueDate = :dueDate, done = :done',
+          ExpressionAttributeNames: {
+            "#name": "name"
+          },
+          ExpressionAttributeValues: {
+            ":name": todoUpdate.name,
+            ":dueDate": todoUpdate.dueDate,
+            ":done": todoUpdate.done
+          }
+        }).promise()   
+
     }
+
 
     // operation to delete a TODO item
     async deleteTodoItem(todoId: string) {
