@@ -39,6 +39,10 @@ export async function createTodo(userId: string, createTodoRequest: CreateTodoRe
 
     logger.info(`Creating new TODO ${todoId} for user ${userId}`, {userId, todoId, todoItem: newTodoItem})
 
+    // check for string only containing spaces
+    if(!createTodoRequest.name.replace(/\s/g, '').length)
+        throw new Error('Name containing only spaces not allowed')
+
     // put to data link
     await todosAccess.createTodoItem(newTodoItem)
 
@@ -51,7 +55,7 @@ export async function updateTodoItem(userId: string, todoId: string, updateTodoR
     logger.info(`Updating TODO ${todoId} for user ${userId}`, {todoId, userId})
 
     // get the todo item to update
-    const todo = await todosAccess.getTodoItem(todoId)
+    const todo = await todosAccess.getTodoItem(userId, todoId)
 
     // check if item is valid
     if(!todo)
@@ -61,7 +65,11 @@ export async function updateTodoItem(userId: string, todoId: string, updateTodoR
     if(todo.userId !== userId) 
         throw new Error('Trying to modify item that does not belong to user')
 
-    todosAccess.updateTodoItem(todoId, updateTodoRequest as TodoUpdate)
+    // check for string only containing spaces
+    if(!updateTodoRequest.name.replace(/\s/g, '').length)
+        throw new Error('Name containing only spaces not allowed')
+
+    todosAccess.updateTodoItem(userId, todoId, updateTodoRequest as TodoUpdate)
 }
 
 // operation to delete todo elements
@@ -70,7 +78,7 @@ export async function deleteTodoItem(userId: string, todoId: string) {
     logger.info(`Deleting TODO ${todoId} for user ${userId}`, {todoId, userId})
 
     // get the todo item to update
-    const todo = await todosAccess.getTodoItem(todoId)
+    const todo = await todosAccess.getTodoItem(userId, todoId)
 
     // check if item is valid
     if(!todo)
@@ -80,7 +88,7 @@ export async function deleteTodoItem(userId: string, todoId: string) {
     if(todo.userId !== userId) 
         throw new Error('Trying to modify item that does not belong to user')
 
-    todosAccess.deleteTodoItem(todoId)
+    todosAccess.deleteTodoItem(userId, todoId)
 }
 
 // operation to update the attachment URL of a TODO
@@ -90,7 +98,7 @@ export async function updAttachmentUrl(userId: string, todoId: string, attachmen
 
     // get the attachment URL of the TODO and item
     const attUrl = await todosAccess.getAttachUrl(attachmentId)
-    const todo = await todosAccess.getTodoItem(todoId)
+    const todo = await todosAccess.getTodoItem(userId, todoId)
 
     // check if item is valid
     if(!todo)
@@ -101,7 +109,7 @@ export async function updAttachmentUrl(userId: string, todoId: string, attachmen
         throw new Error('Trying to modify item that does not belong to user')
 
     // update the url
-    await todosAccess.updateAttachmentUrl(todoId, attUrl)
+    await todosAccess.updateAttachmentUrl(userId, todoId, attUrl)
 }
 
 // operation to generate an upload url

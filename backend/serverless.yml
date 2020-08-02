@@ -4,6 +4,23 @@ service:
 plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
+  - serverless-reqvalidator-plugin
+  - serverless-aws-documentation
+
+custom:
+  documentation:
+    api:
+      info:
+        version: v1.0.0
+        title: Udacity Serverless TODO App
+        description: Udacity Serverless TODO Application Project
+    models:
+      - name: CreateTodo
+        contentType: application/json
+        schema: ${file(src/validators/create-todo-request.json)}
+      - name: UpdateTodo
+        contentType: application/json
+        schema: ${file(src/validators/update-todo-request.json)}
 
 provider:
   name: aws
@@ -17,7 +34,7 @@ provider:
     apiGateway: true
 
   environment:
-    TODOS_TABLE: Todos-${self:provider.stage}
+    TODOS_TABLE: Todos-test2-${self:provider.stage}
     TODOS_FOR_USER_INDEX: TodosForUserIndex
     AUTH0_JWKS_URL: https://dev-6fg0e-ow.eu.auth0.com/.well-known/jwks.json
     ATTACHMENTS_S3_BUCKET: todos-attachments-${self:provider.stage}
@@ -64,6 +81,12 @@ functions:
           path: todos
           cors: true
           auth: Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Create a new TODO item
+            description: This creates a new TODO item for user in databse
+            requestModels:
+              'application/json': CreateTodo
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -92,6 +115,12 @@ functions:
           path: todos/{todoId}
           cors: true
           auth: Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Updates an existing TODO item for user
+            description: This updates an already present TODO item in the database for a user
+            requestModels:
+              'application/json': UpdateTodo
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -177,6 +206,15 @@ functions:
 
 resources:
   Resources:
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
+      
     GatewayResponseDefault4XX:
       Type: AWS::ApiGateway::GatewayResponse
       Properties:
@@ -199,8 +237,10 @@ resources:
           - AttributeName: userId
             AttributeType: S
         KeySchema:
-          - AttributeName: todoId
+          - AttributeName: userId
             KeyType: HASH
+          - AttributeName: todoId
+            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}
         GlobalSecondaryIndexes:

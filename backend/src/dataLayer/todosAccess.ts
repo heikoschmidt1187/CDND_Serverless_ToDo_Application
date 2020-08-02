@@ -58,40 +58,36 @@ export class TodosAccess {
     }
 
     // helper to check if item is present
-    async itemPresent(todoId: string): Promise<boolean> {
+    async itemPresent(userId: string, todoId: string): Promise<boolean> {
 
         logger.info(`Data access for checking TODO item ${todoId} presence`, {todoId})
         
-        const item = await this.getTodoItem(todoId)
+        const item = await this.getTodoItem(userId, todoId)
         return !!item
     }
 
     // helper to get a specific item by id 
-    async getTodoItem(todoId: string): Promise<TodoItem> {
+    async getTodoItem(userId: string, todoId: string): Promise<TodoItem> {
         
         logger.info(`Data access for getting TODO item ${todoId} presence`, {todoId})
 
         // get the item from the database
         const result = await this.docClient.get({
             TableName: this.todosTable,
-            Key: {
-                todoId
-            }
+            Key: { userId, todoId }
         }).promise()
 
         return result.Item as TodoItem
     }
 
     // operation to update an existing item
-    async updateTodoItem(todoId: string, todoUpdate: TodoUpdate) {
+    async updateTodoItem(userId: string, todoId: string, todoUpdate: TodoUpdate) {
         
-        logger.info(`Data access for updating TODO item ${todoId} with update ${todoUpdate}`, {todoId, todoUpdate})
+        logger.info(`Data access for updating TODO item ${todoId} for user ${userId} with update ${todoUpdate}`, {todoId,userId, todoUpdate})
 
         await this.docClient.update({
           TableName: this.todosTable,
-          Key: {
-            todoId
-          },
+          Key: { userId, todoId },
           UpdateExpression: 'set #name = :name, dueDate = :dueDate, done = :done',
           ExpressionAttributeNames: {
             "#name": "name"
@@ -107,15 +103,13 @@ export class TodosAccess {
 
 
     // operation to delete a TODO item
-    async deleteTodoItem(todoId: string) {
+    async deleteTodoItem(userId: string, todoId: string) {
 
-        logger.info(`Data access for deleting TODO item ${todoId}`, {todoId})
+        logger.info(`Data access for deleting TODO item ${todoId} for user ${userId}`, {todoId, userId})
 
         await this.docClient.delete({
             TableName: this.todosTable,
-            Key: {
-                todoId
-            }
+            Key: { userId, todoId }
         }).promise()
     }
 
@@ -143,15 +137,13 @@ export class TodosAccess {
     }
 
     // update function for attachments
-    async updateAttachmentUrl(todoId: string, attachUrl: string) {
+    async updateAttachmentUrl(userId: string, todoId: string, attachUrl: string) {
 
-        logger.info(`Data access for updating the attachment URL for TODO item ${todoId} and URL ${attachUrl}`, {todoId, attachUrl})
+        logger.info(`Data access for updating the attachment URL for TODO item ${todoId} for user ${userId} and URL ${attachUrl}`, {todoId, userId, attachUrl})
 
         await this.docClient.update({
             TableName: this.todosTable,
-            Key: {
-              todoId
-            },
+            Key: { userId, todoId },
             UpdateExpression: 'set attachmentUrl = :attachmentUrl',
             ExpressionAttributeValues: {
               ':attachmentUrl': attachUrl
