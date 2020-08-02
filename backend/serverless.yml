@@ -34,7 +34,7 @@ provider:
     apiGateway: true
 
   environment:
-    TODOS_TABLE: Todos-test2-${self:provider.stage}
+    TODOS_TABLE: Todos-rev2-${self:provider.stage}
     TODOS_FOR_USER_INDEX: TodosForUserIndex
     AUTH0_JWKS_URL: https://dev-6fg0e-ow.eu.auth0.com/.well-known/jwks.json
     ATTACHMENTS_S3_BUCKET: todos-attachments-${self:provider.stage}
